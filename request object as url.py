@@ -5,25 +5,18 @@ import xlwings
 from bs4 import BeautifulSoup
 import sys
 
-# 使用 urlencode() 函数可以将一个 dict 转换成合法的查询参数
-query_args = urllib.parse.urlencode({"name":"zhangsan","age":18})
-print(query_args)
-
-# 使用bytes函数将上文的查询字符串转换为二进制序列
-data = bytes(query_args,encoding='utf-8')
-print(data)
-
-# 使用变量接收一个url路径
+# 定义url，headers
 url = 'http://httpbin.org/post'
+headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.0.0 Safari/537.36"}
+# 创建data
+dict = {"name":"Jay"}
+data = bytes(urllib.parse.urlencode(dict),encoding="utf-8")
+# 组织request对象
+req = urllib.request.Request(url=url,data=data,headers=headers,method="POST")
 
-# 将二进制表单数据作为携带的参数发送post请求
-try:
-    response = urllib.request.urlopen(url,data=data, timeout=0.1)
-    print(response.read().decode())
-except Exception as e:
-    print(url)
-
-
-
+# 使用request对象作为urlopen参数
+response = urllib.request.urlopen(req)
+# 打印返回结果
+print(response.read().decode())
 
 
