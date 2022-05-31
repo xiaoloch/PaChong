@@ -20,3 +20,4 @@ import re
 # split()函数
 
 print(re.split("[A-Z]{2}","AZds2321DD!@#RF",1))
+
