@@ -4,6 +4,7 @@ import urllib.parse
 import xlwings
 from bs4 import BeautifulSoup
 import sys
+import xlwings as xw
 
 url = "https://movie.douban.com/top250?start="
 
@@ -55,8 +56,16 @@ def getData(url):
             """添加一句话描述到列表"""
             movie_des = re.findall(r'<span class="inq">(.*)</span>', j_str)
             # movie_des = movie_des[0].replace("。","")
+            # print(movie_des)
+            if len(movie_des) >= 1:
+                data.append(movie_des[0])
+            else:
+                data.append("")
+            """添加评分"""
+            movie_rate = re.findall(r'<span class="rating_num" property="v:average">(.*)</span>', j_str)
+            # movie_des = movie_des[0].replace("。","")
             # print(type(movie_des))
-            data.append(movie_des)
+            data.append(movie_rate[0])
             """添加评价人数"""
             movie_eva_count = re.findall(r'<span>(\d*)人评价</span>', j_str)
             # print(movie_eva_count[0])
@@ -69,23 +78,31 @@ def getData(url):
             # print(movie_info)
             data.append(movie_info)
             datalist.append(data)
-    for k in datalist:
-        print(k)
+    return datalist
 
-
-
-getData(url)
-
-# 解析数据
-def parseData():
-    pass
 
 # 保存数据
-def saveData():
-    pass
+def saveData(data_list,save_path):
+    # 创建app,开启实时进度可视化，关闭自动添加工作簿
+    app = xw.App(visible=True, add_book=False)
+    # 手动添加一个excel工作簿,即打开一个excel
+    wb = app.books.add()
+    # 读取sheet1，准备接收原始数据
+    sht = wb.sheets["sheet1"]
+    sht.range("a1").value = ["电影名称", "外文名称","电影链接", "一句话描述", "电影评分","参评人数","其他信息"]
+    sht.range("a2").value = data_list
+
+    wb.save(path=save_path)
+    wb.close()
+    app.quit()
 
 # 主程序
 
 if __name__ == '__main__':
-    pass
+    save_path = r'C:\Users\chenxia\Desktop\豆瓣评分top250电影.xlsx'
+    data_list = getData(url)
+    saveData(data_list,save_path)
+
+
+
 
