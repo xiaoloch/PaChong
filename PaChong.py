@@ -21,7 +21,6 @@ def askURL(url):
 def getData(url):
     # 定义datalist来接收所有电影的信息
     datalist = []
-
     for i in range(0,10):
         # 构建url
         url_real = url + str(i * 25)
@@ -75,7 +74,8 @@ def getData(url):
             # print(movie_info)
             data.append(movie_info)
             datalist.append(data)
-    print(datalist)
+    for i in datalist:
+        print(i)
     return datalist
 
 # 保存数据到excel
