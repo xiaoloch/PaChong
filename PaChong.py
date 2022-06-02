@@ -1,16 +1,14 @@
 import re
 import urllib.request
 import urllib.parse
-import xlwings
 from bs4 import BeautifulSoup
 import sys
 import xlwings as xw
-
-url = "https://movie.douban.com/top250?start="
-
+import pymysql
 
 
-# 获取网页
+
+# 获取网页对象
 def askURL(url):
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.0.0 Safari/537.36"}
@@ -18,7 +16,6 @@ def askURL(url):
     response = urllib.request.urlopen(req)
     html = response.read().decode()
     return html
-
 
 # 爬取数据
 def getData(url):
@@ -78,10 +75,10 @@ def getData(url):
             # print(movie_info)
             data.append(movie_info)
             datalist.append(data)
+    print(datalist)
     return datalist
 
-
-# 保存数据
+# 保存数据到excel
 def saveData(data_list,save_path):
     # 创建app,开启实时进度可视化，关闭自动添加工作簿
     app = xw.App(visible=True, add_book=False)
@@ -96,12 +93,55 @@ def saveData(data_list,save_path):
     wb.close()
     app.quit()
 
-# 主程序
+# 初始化数据库
+def iniDatabase():
+    conn = pymysql.connect(host="192.168.29.128", port=3306, user="root", password="123", database="PaChong",
+                           charset="utf8")
+    cur = conn.cursor()
 
+    sql = '''create table students(
+    id int primary key auto_increment not null,
+    movie_cn_name varchar(100) not null,
+    movie_fr_name varchar(100),
+    movie_link varchar(100),
+    movie_des varchar(100),
+    movie_score float not null,
+    movie_rated int not null,
+    movie_info varchar(200)
+    )
+    '''
+    cur.execute(sql)
+    cur.close()
+    conn.commit()
+    conn.close()
+
+# 保存数据到MySQL数据库
+def saveData_db(data_list):
+    conn = pymysql.connect(host="192.168.29.128",port=3306,user="root",password="123",database="PaChong",charset="utf8")    # 创建数据库连接
+    cur = conn.cursor()     # 创建游标对象
+    for item in data_list:
+        '''给除数字外其他所有的列表元素加引号，因为sql中values后的括号中的内容，如果是字符串，必须带引号，直接用列表下标取出来的数据是不带引号的，所以要额外添加。数字则不用'''
+        for i in range(len(item)):
+            if i == 4 or i == 5:
+                continue
+            item[i] = '"'+item[i]+'"'
+        '''将列表中的元素用“，”连接起来'''
+        values = ",".join(item)
+        '''一定要声明所有字段，如果不声明，那么values后的括号中就需要带上id字段的值'''
+        sql = "insert into students (movie_cn_name,movie_fr_name,movie_link,movie_des,movie_score,movie_rated,movie_info) values(%s)" %values
+        cur.execute(sql)
+        conn.commit()
+    cur.close()
+    conn.close()
+
+# 主程序
 if __name__ == '__main__':
+    url = "https://movie.douban.com/top250?start="
     save_path = r'C:\Users\chenxia\Desktop\豆瓣评分top250电影.xlsx'
     data_list = getData(url)
     saveData(data_list,save_path)
+    # iniDatabase()
+    saveData_db(data_list)
 
 
 
